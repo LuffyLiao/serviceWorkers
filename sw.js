@@ -1,17 +1,20 @@
+var cacheKey = new Date().toISOString();
+
+var cacheWhiteList = [cacheKey]
+var cacheFileList = [
+  '/index.html',
+  'main.js',
+  'style.css',
+  'star-wars-logo.jpg',
+  'images/bountyHunters.jpg',
+  'images/myLittleVader.jpg',
+  'images/snowTroopers.jpg'
+  
+]
 self.addEventListener('install', function(event) {
   event.waitUntil(
-    caches.open('v1').then(function(cache) {
-      return cache.addAll([
-        '/sw-test/',
-        '/sw-test/index.html',
-        '/sw-test/style.css',
-        '/sw-test/app.js',
-        '/sw-test/image-list.js',
-        '/sw-test/star-wars-logo.jpg',
-        '/sw-test/gallery/bountyHunters.jpg',
-        '/sw-test/gallery/myLittleVader.jpg',
-        '/sw-test/gallery/snowTroopers.jpg'
-      ]);
+    caches.open('cacheKey').then(function(cache) {
+      return cache.addAll(cacheFileList);
     })
   );
 });
@@ -20,7 +23,7 @@ self.addEventListener('fetch', function(event) {
   event.respondWith(caches.match(event.request).then(function(response) {
     // caches.match() always resolves
     // but in case of success response will have value
-    if (response !== undefined) {
+    if (response) {
       return response;
     } else {
       return fetch(event.request).then(function (response) {
@@ -34,8 +37,22 @@ self.addEventListener('fetch', function(event) {
         });
         return response;
       }).catch(function () {
-        return caches.match('/sw-test/gallery/myLittleVader.jpg');
+        return caches.match('images/myLittleVader.jpg');
       });
     }
   }));
 });
+
+self.addEventListener('activate',function(event){
+  event.waitUntil(
+    caches.keys().then(function(cacheName){
+      return Promise.all(
+        cacheName.map(function(cacheName){
+          if(cacheWhiteList.lastIndexOf(cacheName) === -1){
+            return caches.delete(cacheName) 
+          }
+        })
+      )
+    })
+  )
+})
