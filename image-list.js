@@ -1,3 +1,5 @@
+// 图片文件
+
 var Path = 'images/';
 
 var Gallery = { 'images' : [
